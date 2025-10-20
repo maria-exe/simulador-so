@@ -9,3 +9,4 @@ class TaskControlBlock:
         self.duracao = duracao 
         self.prioridade = prioridade
 
+# falta: estado da tarefa, tempo de processamento já decorrido, contextos do processador
