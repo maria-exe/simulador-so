@@ -3,7 +3,7 @@
 # Armazena as informações das tarefas antes, durante e depois da simulação
 
 class TaskControlBlock:
-    # Método Construtor
+   
     def __init__(self, tarefa_id, cor, ingresso, duracao, prioridade, lista_eventos):
         
         self.id = tarefa_id
