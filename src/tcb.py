@@ -1,6 +1,6 @@
 
-# definição da classe task control block
-# armazena as informações das tarefas antes, durante e depois da simulação
+# Definição da classe task control block
+# Armazena as informações das tarefas antes, durante e depois da simulação
 
 class TaskControlBlock:
     # Método Construtor
@@ -13,4 +13,4 @@ class TaskControlBlock:
         self.prioridade = prioridade
         self.eventos = lista_eventos
 
-# falta: estado da tarefa, tempo de processamento já decorrido, contextos do processador
+        self.estado = 'Novo' # Estados da tarefa
