@@ -1,5 +1,4 @@
-from tcb import TaskControlBlock
-
+from .tcb import TaskControlBlock
 
 def tasks_config(file):
     
