@@ -32,10 +32,5 @@ def tasks_config(file):
             )
 
             tasks_list.append(new_task)
-    
-    
-    """ TESTANDO AS TAREFAS :)
-    for task in tasks_list:
-        print(task.id, task.color, task.start, task.duration, task.prio)"""
 
     return scheduler, quantum, tasks_list
