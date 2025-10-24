@@ -1,7 +1,7 @@
 from tcb import TaskControlBlock
 
 
-def tasks_config (file):
+def tasks_config(file):
     
     tasks_list = []
 
