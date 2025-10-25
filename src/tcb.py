@@ -23,11 +23,12 @@ class TaskControlBlock:
         self.duration = duration
         self.prio = prio
 
-        self.state = TaskState.NEW
+        self._state = TaskState.NEW
 
-        self.waiting_time = 0
-        self.remaining_time = duration
+        self._waiting_time = 0
+        self._life_time = 0
+
+        self._remaining_time = duration
         
-        self.life_time = 0
 
  
