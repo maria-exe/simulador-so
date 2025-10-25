@@ -23,11 +23,6 @@ class TaskControlBlock:
         self.prio = prio
 
         self._state = TaskState.NEW
-
-        self._waiting_time = 0
-        self._life_time = 0
-
-        self._remaining_time = duration
-        
-
- 
+        self._waiting_time = 0           # Tempo de espera
+        self._life_time = 0              # Tempo de vida da tarefa
+        self._remaining_time = duration  # Tempo restante de execução
