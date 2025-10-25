@@ -9,7 +9,6 @@ class TaskState(Enum):
     TERMINATED = auto(),
     SUSPENDED = auto()
 
-
 # Definição da classe task control block
 # Armazena as informações das tarefas antes, durante e depois da simulação
 
