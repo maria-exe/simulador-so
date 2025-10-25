@@ -13,7 +13,7 @@ def tasks_config(file):
         scheduler = f_line[0]
         quantum = int(f_line[1])
 
-        for line in config_txt:
+        for line in config_txt: # Falta: tratar possíveis erros de leitura
             line = line.strip().split(';')
 
             t_id = line[0]
