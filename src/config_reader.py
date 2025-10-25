@@ -1,23 +1,23 @@
 from .tcb import TaskControlBlock
 
 def tasks_config(file):
-    
     tasks_list = []
 
-    try: # Falta implementar todas as verificações de erros
-        with open(file, 'r', encoding='utf-8') as config_txt:
+    try:
+        with open(file, 'r', encoding='utf-8') as config_file: 
 
             # Lê a primeira linha do arq e separa por ; em uma lista
-            f_line = config_txt.readline().strip('\n').split(';') 
+            f_line = config_file.readline().strip('\n').split(';') 
 
-            # Info do escalonador e quantum
+            if len(f_line) != 2:
+                raise ValueError("Parâmetros para escalonador e quantum são insuficientes!")
+            
             scheduler = f_line[0]
             quantum = int(f_line[1])
 
-            for line in config_txt: # Falta: tratar possíveis erros de leitura
+            for line in config_file:
                 line = line.strip().split(';')
-
-            
+                
                 t_id = line[0]
                 color = int(line[1])
                 start = int(line[2])
@@ -35,9 +35,9 @@ def tasks_config(file):
 
                 tasks_list.append(new_task)
 
-        return scheduler, quantum, tasks_list
-    
-    except FileNotFoundError:
-        print(f"Arquivo {file} não encontrado!")
-        return None, 0, []
 
+    except FileNotFoundError:
+        print(f"\nArquivo {file} não encontrado.")   
+        return None, 0, []
+        
+    return scheduler, quantum, tasks_list
