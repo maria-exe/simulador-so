@@ -32,7 +32,6 @@ def tasks_config(file):
 
                 tasks_list.append(new_task)
 
-
     except FileNotFoundError:
         print(f"\nArquivo {file} não encontrado.")   
         return None, 0, []
