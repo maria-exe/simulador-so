@@ -8,9 +8,6 @@ def tasks_config(file):
 
             # Lê a primeira linha do arq e separa por ; em uma lista
             f_line = config_file.readline().strip('\n').split(';') 
-
-            if len(f_line) != 2:
-                raise ValueError("Parâmetros para escalonador e quantum são insuficientes!")
             
             scheduler = f_line[0]
             quantum = int(f_line[1])
