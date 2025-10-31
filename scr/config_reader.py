@@ -2,10 +2,10 @@ from .task import TaskControlBlock
 from .scheduler import schedulers
 """ Implementacao de metodos para leitura e escrita do arquivo de parametrizacao/configuracao das:
     
-    O metodo create_config sobreescreve o arquivo de configuracao padrao do sistema com configuracoes passadas pelo
+    A funcao create_config sobreescreve o arquivo de configuracao padrao do sistema com configuracoes passadas pelo
     usuario
     
-    O metodo read_config le um arquivo com as configuracoes do sistema e retorna o escalonador, quantum e instancia
+    A funcao read_config le um arquivo com as configuracoes do sistema e retorna o escalonador, quantum e instancia
     uma as tarefas no TCB com base nessas configuracoes 
 
 """
@@ -16,7 +16,7 @@ def create_config(filepath, scheduler, quantum, temp_tasks_list):  # criacao de 
             f_line = f"{scheduler};{quantum}\n"                      
             file.write(f_line)                          # escreve a primeira linha do arquivo
 
-            for task in temp_tasks_list:                # escreve uma tarefa por linha no arquivo
+            for task in temp_tasks_list:                # escreve uma tarefa por ylinha no arquivo
                 t_line = [
                     str(task["t_id"]), 
                     str(task["color"]), 
@@ -39,20 +39,22 @@ def read_config(file): # leitura de arquivos
             
             content = config_file.read()
             if not content:
-                raise ValueError("Arquivo {file} vazio.")
+                raise ValueError(f"Arquivo {file} vazio.")
+            
+            config_file.seek(0)
                 
             f_line = config_file.readline().strip('\n').split(';')
-            if f_line != 2:
-                raise ValueError("Primeira linha do arquivo mal estrutura. Deve ser: 'escalonador;quantum'")
+            if len(f_line) != 2:
+                raise ValueError("Arquivo mal estruturado. Deve ser: 'escalonador;quantum'")
             
             scheduler = f_line[0]
             quantum = int(f_line[1])
 
             if scheduler not in schedulers: 
-                raise ValueError("Escalonador {scheduler} invalido.")
+                raise ValueError(f"Escalonador {scheduler} invalido.")
             
             if quantum <= 0:
-                raise ValueError("Quantum {quantum} invalido.")
+                raise ValueError(f"Quantum {quantum} invalido.")
             
             tasks_list = []
             for line in config_file:
@@ -66,11 +68,13 @@ def read_config(file): # leitura de arquivos
                 start = int(line[2])
                 duration = int(line[3])
                 prio = int(line[4])
-
+ 
                 if duration <= 0:
                     raise ValueError("Valor de duracao invalido.")
                 if start < 0:
                     raise ValueError("Valor de ingresso invalido.")
+                if prio < 0:
+                    raise ValueError("Valor de prioridade invalido.")
                 
                 # instancia uma tarefa
                 new_task = TaskControlBlock(       # instancia uma tarefa
@@ -84,10 +88,10 @@ def read_config(file): # leitura de arquivos
  
     except FileNotFoundError:
         print(f"Arquivo {file} nao encontrado.")
+        return None, 0, []
     
     except Exception as e:
-        raise e
+        print(f"Erro: {e}")
+        return None, 0, []
 
     return scheduler, quantum, tasks_list
-
-

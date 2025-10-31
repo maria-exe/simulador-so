@@ -1,17 +1,8 @@
-from .task import TaskControlBlock, TaskState
+from .enums import TaskState
+from .clock import SystemClock
 from .scheduler import schedulers
 
-class SystemClock: 
-    def __init__(self):
-        self._current_tick = 0
-
-    def tick(self): 
-        self._current_tick += 1 
-
-    @property
-    def current_time(self):
-        return self._current_tick
-
+# cada posicao da lista de um struct que armazena as informacoes de cada tick
 class Simulator():
     def __init__(self, scheduler, quantum, tasks_list):
         self.clock = SystemClock()
@@ -37,8 +28,15 @@ class Simulator():
                 self.ready_tasks.append(task)
    
     # Método para execução passo a passo
-    def step (self): 
+    def step (self):
         pass
+
+    def complete_simulation (self): 
+        simulation_data = []
+
+        # a cada tick verificar se uma tarefa nova chegou no sistema  }
+
+        return simulation_data
     
     # Método para execução completa
     

@@ -1,12 +1,5 @@
 from enum import Enum, auto
-
-# Estados das tarefas
-class TaskState(Enum):
-    NEW = auto(),
-    READY = auto(),
-    RUNNING = auto(), 
-    TERMINATED = auto(),
-    SUSPENDED = auto()
+from scr.enums import TaskState
 
 # Armazena as informações das tarefas antes, durante e depois da simulação
 class TaskControlBlock:

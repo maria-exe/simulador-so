@@ -11,22 +11,22 @@ def main():
     ]
     
     arquivo = "config/fifo.txt"
-    create_config(arquivo, "SRTF", 7, tarefas_de_teste)
+    # create_config(arquivo, "SRTF", 7, tarefas_de_teste)
     
     scheduler, quantum, tasks_list = read_config(arquivo)
     print(f"Escalonador: {scheduler}, Quantum: {quantum}")
 
 
     # for task in tasks_list:
-    #     task._state = TaskState.SUSPENDED
+    #     print(task.prio)
         
 
     # for task in tasks_list:
     #     print(str(task))
 
-    simulacao1 = Simulator(scheduler, quantum, tasks_list)
-    simulacao1.tasks()
-    #print(simulacao1.scheduler, simulacao1.quantum)
+    # simulacao1 = Simulator(scheduler, quantum, tasks_list)
+    # simulacao1.tasks()
+    # #print(simulacao1.scheduler, simulacao1.quantum)
     #print(simulacao1.scheduler, simulacao1.quantum)
 
 if __name__ == "__main__":
