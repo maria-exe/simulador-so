@@ -24,4 +24,4 @@ class TaskControlBlock:
     
     def __str__(self):
         return (f"Tarefa {self.id}, inicio em: {self.start}, estado atual: {self._state.name}, " 
-                f"tempo de espera: {self._waiting_time}, tempo restante de execucao: {self._remaining_time}")
+                f"tempo de espera: {self._waiting_time}, tempo restante de execucao: {self._remaining_time}\n")

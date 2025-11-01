@@ -30,5 +30,6 @@ class PRIOP(Scheduler):
 schedulers = {
         "FCFS": FCFS,
         "SRTF": SRTF,
-        "PRIOP": PRIOP
+        "PRIOP": PRIOP,
+        "RR": FCFS
 }
