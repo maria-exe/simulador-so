@@ -7,6 +7,7 @@ class Simulator():
     def __init__(self, scheduler, quantum, tasks_list):
         self.clock = SystemClock()
         
+        # mover para a interface 
         valid_scheduler = schedulers.get(scheduler)                          # verifica que o scheduler esta no dicionario
         if not valid_scheduler:
             raise ValueError(f"Escalonador '{scheduler}' inválido")
@@ -17,29 +18,21 @@ class Simulator():
 
         self.tasks_list = tasks_list
         
-        self._current_task = None            # apenas uma tarefa pode estar no estado RUNNING
+        self.current_task = None            # apenas uma tarefa pode estar no estado RUNNING
         self.ready_tasks = []         
         
-    def tasks(self):
-        for task in self.tasks_list:
-           print(str(task))
-
-    def add_ready_tasks(self):
+    def check_new_tasks(self):
         for task in self.tasks_list:
             if task.start == self.clock.current_time and task._state == TaskState.NEW:
-                task._state = TaskState.READY
+                task.set_ready()
                 self.ready_tasks.append(task)
-                print(task)
    
     def increment_waiting_time(self):
         for task in self.ready_tasks:
             task._waiting_time += 1
 
-    def select_task(self):
-        if not self.ready_tasks:
-            return None
-        
-        return self.scheduler.select_next_task(self.ready_tasks)
+    def select_task(self):        
+        return self.scheduler.select_next_task(self.ready_tasks, self.current_task)
     
     def existing_tasks(self):
         for task in self.tasks_list:
@@ -47,62 +40,72 @@ class Simulator():
                 return True
         return False 
     
-    # Método para execução passo a passo
-    def step(self):
+    def is_running(self):
+        if self.current_task == None:
+            return False
+        return True
+    
+    def is_terminated(self):
+        if self.current_task._remaining_time == 0:
+            return True
+        return False
+    
+    def tick(self):
+        self.increment_waiting_time()
+        self.check_new_tasks()
 
-        self.increment_waiting_time()   # Incrementa tempo de espera das tarefas prontas
-        self.add_ready_tasks()
+        if not self.is_running():
+            if self.ready_tasks:
+                chosen_task = self.select_task()
+                self.ready_tasks.remove(chosen_task)    # PRONTA -> EXECUTANDO
+                self.current_task = chosen_task
+                self.current_task.set_running()
 
-        if self._current_task is not None:                  # CPU/ocupada
-            self._current_task._remaining_time -= 1
-            self._quantum_tick += 1
-            
-            if self._current_task._remaining_time == 0:             # verifica se a tarefa terminou 
-                self._current_task._state = TaskState.TERMINATED 
-                self._current_task = None
-                self._quantum_tick = 0                         # reseta quantum
-
-            elif self._quantum_tick == self._quantum:          # esgotou o quantum
-                new_task = self.select_task()
-                self._current_task._state = TaskState.READY
-                self.ready_tasks.append(self._current_task)
-                
-                self.ready_tasks.remove(new_task)
-                
-                self._current_task = new_task
-                self._current_task._state = TaskState.RUNNING
-                
                 self._quantum_tick = 0
 
+        elif self.is_running():
+            self.current_task._remaining_time -= 1
+            self._quantum_tick += 1
+
+            if self.is_terminated():
+                self.current_task.set_terminated()
+                self.current_task = None
+                self._quantum_tick = 0
+            
+            # Preempcao por esgotamento de Quantum 
+            elif self._quantum_tick == self._quantum:           # esgotou o quantum
+                self.current_task.set_ready()                   # muda seu estado para pronto e adiciona de volta para lista de prontos
+                self.ready_tasks.append(self.current_task)
+                
+                self.current_task = None
+                chosen_task = self.select_task()                # seleciona a proxima tarefa
+                self.current_task = chosen_task
+                
+                self.current_task.set_running()
+                self.ready_tasks.remove(self.current_task)
+                
+                self._quantum_tick = 0                          # reseta o quantum 
+            
+            # preempção por prioridade/menor_tempo_restante/entre outros
             else: 
-                new_task = self.select_task()
-                if new_task is not None and new_task != self._current_task:  # verifica se a tarefa escolhida pelo escalonador e diferente da executando                                         
-                    self._current_task._state = TaskState.READY   # muda seu estado  
-                    self.ready_tasks.append(self._current_task)   # EXEC. -> PRONTA -- preempta a tarefa 
-                    self.ready_tasks.remove(new_task)            # remove a nova da lista de prontos -- PRONTA -> EXEC.
+                chosen_task = self.select_task()
+                if chosen_task == self.current_task:
+                    pass                                        # continua executando se nao tiver outra tarefa para preemptar a atual
+                elif chosen_task != self.current_task:          # outra tarefa preempta a que ta executando
+                    self.current_task.set_ready()
+                    self.ready_tasks.append(self.current_task)
 
-                    self._current_task = new_task                # nova ocupa a CPU do sistema
-                    self._current_task._state = TaskState.RUNNING
-                    self._quantum_tick = 0
+                    self.current_task = chosen_task             # a outra tarefa recebe o processamento
+                    self.ready_tasks.remove(self.current_task)
+                    self.current_task.set_running()
+
+                    self._quantum_tick = 0                      # reseta o quantum
         
-        elif self._current_task is None and self.ready_tasks:
-            
-            new_task = self.select_task()
-            
-            self.ready_tasks.remove(new_task)                   # PRONTA -> EXECUTANDO
-            self._current_task = new_task
-            self._current_task._state = TaskState.RUNNING
-            self._quantum_tick = 0                               # reseta o quantum 
-
-        self.clock.tick()
+        
+        self.clock.tick()                                       # avança o tick
     
 
     def complete_simulation(self):
         while(self.existing_tasks()):
-            self.step()
+            self.tick()
 
-    # return simulation_data
-    # Método para execução completa
-    
-    # TA - running -- acabou o tempinho dela -- sisteminha vai olhar e tentar e preemptar --- se tiver outra prio maior ela preempt
-    # se nao continua com ela --- quantum ainda acontece com base na regra do escalonador

@@ -7,3 +7,4 @@ class TaskState(Enum):
     RUNNING = auto(), 
     TERMINATED = auto(),
     SUSPENDED = auto()
+

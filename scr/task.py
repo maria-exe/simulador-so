@@ -1,5 +1,4 @@
-from enum import Enum, auto
-from scr.enums import TaskState
+from .enums import TaskState
 
 # Armazena as informações das tarefas antes, durante e depois da simulação
 class TaskControlBlock:
@@ -25,3 +24,16 @@ class TaskControlBlock:
     def __str__(self):
         return (f"Tarefa {self.id}, inicio em: {self.start}, estado atual: {self._state.name}, " 
                 f"tempo de espera: {self._waiting_time}, tempo restante de execucao: {self._remaining_time}\n")
+    
+        # Metodos para mudancas de estados
+    def set_ready(self):
+        self._state = TaskState.READY
+
+    def set_running(self):
+        self._state = TaskState.RUNNING
+
+    def set_terminated(self):
+        self._state = TaskState.TERMINATED
+    
+    def set_suspended(self):
+        self._state = TaskState.SUSPENDED
