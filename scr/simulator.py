@@ -2,7 +2,6 @@ from .enums import TaskState
 from .clock import SystemClock
 from .scheduler import schedulers
 
-# cada posicao da lista de um struct que armazena as informacoes de cada tick
 class Simulator():
     def __init__(self, scheduler, quantum, tasks_list):
         self.clock = SystemClock()
@@ -19,8 +18,11 @@ class Simulator():
         self.tasks_list = tasks_list
         
         self.current_task = None            # apenas uma tarefa pode estar no estado RUNNING
-        self.ready_tasks = []         
-        
+        self.ready_tasks = []    
+
+        self.tick_data = []               # lista para armazenar as informacoes de cada tick
+    
+    # Metodos auxiliares 
     def check_new_tasks(self):
         for task in self.tasks_list:
             if task.start == self.clock.current_time and task._state == TaskState.NEW:
@@ -50,9 +52,28 @@ class Simulator():
             return True
         return False
     
+    def register_running_tasks(self, current_tick, running_task):
+        if running_task is not None:
+            self.tick_data.append ({
+                'tick': current_tick,
+                'id': running_task, 
+                'state': 'running'     
+            })
+    
+    def register_waiting_tasks(self, current_tick):
+        for task in self.ready_tasks:
+            self.tick_data.append ({
+            'tick': current_tick,
+            'id': task.id,  
+            'state': 'ready'  
+            })
+
+    # Metodo de execucao de um tick da simulacao 
     def tick(self):
         self.increment_waiting_time()
         self.check_new_tasks()
+
+        current_tick = self.clock.current_time
 
         if not self.is_running():
             if self.ready_tasks:
@@ -69,7 +90,7 @@ class Simulator():
                 self.current_task.set_ready()
                 self.ready_tasks.append(self.current_task)
 
-                self.current_task = chosen_task             # a outra tarefa recebe o processamento
+                self.current_task = chosen_task                 # a outra tarefa recebe o processamento
                 self.ready_tasks.remove(self.current_task)
                 self.current_task.set_running()
                 self._quantum_tick = 0                 
@@ -86,7 +107,12 @@ class Simulator():
                 
                 self._quantum_tick = 0    
 
+        running_task = None                                     # apenas para armazenar no historico
+
         if self.is_running():
+            
+            running_task = self.current_task.id
+
             self.current_task._remaining_time -= 1
             self._quantum_tick += 1
 
@@ -96,9 +122,13 @@ class Simulator():
                 self.current_task = None
                 self._quantum_tick = 0
                 
+        self.register_running_tasks(current_tick, running_task)
+        self.register_waiting_tasks(current_tick)
+
         self.clock.tick()                                       # avança o tick
     
 
+    # Execucao completa
     def complete_simulation(self):
         while(self.existing_tasks()):
             self.tick()
