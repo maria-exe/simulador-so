@@ -10,9 +10,13 @@ class Scheduler(ABC):
 
 class FCFS(Scheduler):
     def select_next_task(self, ready_tasks, current_task):
-        if not ready_tasks:                    # verifica se a lista esta vazia
+        if not ready_tasks:
             return current_task
-        return ready_tasks[0]                  # retorna a primeira tarefa da lista de prontos
+        
+        if current_task is not None:
+            return current_task
+
+        return ready_tasks[0]
 
 class SRTF(Scheduler):
     def select_next_task(self, ready_tasks, current_task):

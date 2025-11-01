@@ -63,45 +63,39 @@ class Simulator():
 
                 self._quantum_tick = 0
 
-        elif self.is_running():
-            self.current_task._remaining_time -= 1
-            self._quantum_tick += 1
+        else:
+            chosen_task = self.select_task()
+            if chosen_task != self.current_task:
+                self.current_task.set_ready()
+                self.ready_tasks.append(self.current_task)
 
-            if self.is_terminated():
-                self.current_task.set_terminated()
-                self.current_task = None
-                self._quantum_tick = 0
-            
-            # Preempcao por esgotamento de Quantum 
-            elif self._quantum_tick == self._quantum:           # esgotou o quantum
+                self.current_task = chosen_task             # a outra tarefa recebe o processamento
+                self.ready_tasks.remove(self.current_task)
+                self.current_task.set_running()
+                self._quantum_tick = 0                 
+
+            elif self._quantum_tick == self._quantum:
                 self.current_task.set_ready()                   # muda seu estado para pronto e adiciona de volta para lista de prontos
                 self.ready_tasks.append(self.current_task)
                 
                 self.current_task = None
                 chosen_task = self.select_task()                # seleciona a proxima tarefa
                 self.current_task = chosen_task
-                
-                self.current_task.set_running()
                 self.ready_tasks.remove(self.current_task)
+                self.current_task.set_running()
                 
-                self._quantum_tick = 0                          # reseta o quantum 
-            
-            # preempção por prioridade/menor_tempo_restante/entre outros
-            else: 
-                chosen_task = self.select_task()
-                if chosen_task == self.current_task:
-                    pass                                        # continua executando se nao tiver outra tarefa para preemptar a atual
-                elif chosen_task != self.current_task:          # outra tarefa preempta a que ta executando
-                    self.current_task.set_ready()
-                    self.ready_tasks.append(self.current_task)
+                self._quantum_tick = 0    
 
-                    self.current_task = chosen_task             # a outra tarefa recebe o processamento
-                    self.ready_tasks.remove(self.current_task)
-                    self.current_task.set_running()
+        if self.is_running():
+            self.current_task._remaining_time -= 1
+            self._quantum_tick += 1
 
-                    self._quantum_tick = 0                      # reseta o quantum
-        
-        
+            if self.is_terminated():
+                self.current_task.set_terminated()
+                self.current_task._life_time = (self.clock.current_time + 1) - self.current_task.start
+                self.current_task = None
+                self._quantum_tick = 0
+                
         self.clock.tick()                                       # avança o tick
     
 
