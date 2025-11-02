@@ -1,5 +1,4 @@
 from enum import Enum, auto
-
 # Estados das tarefas
 class TaskState(Enum):
     NEW = auto(),

@@ -22,10 +22,10 @@ class TaskControlBlock:
                 f"remaining={self._remaining_time}, waiting time={self._waiting_time})")
     
     def __str__(self):
-        return (f"{self.id} {self._state.name} START: {self.start} " 
-                f"DURATION: {self.duration} PRIORIDADE: {self.prio} REMAINING: {self._remaining_time}")
+        return (f"{self.id} START: {self.start} " 
+                f"DURATION:{self.duration} PRIORIDADE: {self.prio} REMAINING: {self._remaining_time} ESTADO: {self._state.name} ")
     
-        # Metodos para mudancas de estados
+    # Metodos para mudancas de estados
     def set_ready(self):
         self._state = TaskState.READY
 

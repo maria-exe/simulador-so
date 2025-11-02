@@ -1,66 +1,95 @@
-import os, sys, tty, termios
 from scr.config_reader import read_config, create_config
+from scr.task import TaskControlBlock
 from scr.simulator import Simulator
 from scr.enums import Scheduler
 from ui.ui_aux import colors, color_state
 from ui.gantt_chart import GanttChart
+import os, sys, tty, termios
 
 class SystemInterface:
     def __init__(self):
-        self.default_file = "config/fifo.txt"                                        # configuracao padrao do sistema que pode ser sobreescrito pelo usuario
-        self.scheduler, self.quantum, self.tasks = read_config(self.default_file)
-        self.simulator1 = Simulator(self.scheduler, self.quantum, self.tasks)
+        self.default_file = "config/DEFAULT.txt"           # Configuracao padrao do sistema, que pode ser sobreescrito pelo usuario
+        if getattr(sys, 'frozen', False):
+            self.dir = os.path.dirname(sys.executable)
         
+        else: 
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            self.dir = os.path.dirname(script_dir)
+    
+        self.file_path = os.path.join(self.dir, self.default_file)
+
+        self.scheduler, self.quantum, self.tasks = read_config(self.file_path)
+        self.simulator1 = Simulator(self.scheduler, self.quantum, self.tasks)
         self.tasks_map = {}
 
-    # Metodo principal da classe, responsavel pelo interacao com o usuario no terminal
+    # Metodo principal classe para controlar outras partes do programa de acordo com as entradas do usuario
     def main_menu(self):
-        try: 
-            self.clear_terminal()
-            print("--- SimuladorOS ---\n")
-            print("Digite o numero da opcao desejada:\n" \
-            "      1. INICIAR\n" \
-            "      2. CARREGAR ARQUIVO\n" \
-            "      3. CONFIGURACAO\n" \
-            "      4. SAIR\n")
+        while True:
+            try: 
+                self.clear_terminal()
+                print("--- SimuladorOS ---\n")
+                print("Digite o numero da opcao desejada:\n" \
+                "      1. INICIAR\n" \
+                "      2. CARREGAR ARQUIVO\n" \
+                "      3. CONFIGURACAO\n" \
+                "      4. SAIR\n")
 
-            command = int(input("Digite: "))
-            
-            match command:
-                case 1: 
-                    print("Selecione o modo de simulacao: (1. Passo-a-passo, 2. Completa)")
-                    mode = int(input("Digite: "))
-                    if mode == 1:
-                       self.by_step_simulation()
-                    elif mode == 2:
-                        self.complete_simulation()
-
-                    print("\nQuer salvar o resultado da simulacao como imagem? (1. Sim, 2. Não)")
-                    mode = int(input("Digite: "))
-                    if mode == 1:
-                        gantt = GanttChart(self.simulator1, self.scheduler)
-                        gantt.create_chart()
-                    elif mode == 2:
-                        print("Adeus!")
-                        sys.exit(0)
-                case 2:
-                    caminho = input("Digite o arquivo. Exemplo: 'SRTF.txt': ")
+                command = int(input("Digite: "))
                 
-                    read_config(caminho) # precisa arrumar os caminhos para serem absolutos no standalone
-                   
+                match command:
+                    case 1: 
+                        print("Selecione o modo de simulacao: (1. Passo-a-passo, 2. Completa)")
+                        mode = int(input("Digite: "))
+                        if mode == 1:
+                            self.by_step_simulation()
+                        elif mode == 2:
+                            self.complete_simulation()
 
-                    self.main_menu()
-                case 3:
-                    self.scheduler, self.quantum, self.tasks_list = self.create_tasks()
-                    create_config(self.default_file, self.scheduler, self.quantum, self.tasks_list) # sobreescreve arquivo default com as config do usuario
-                    self.main_menu()
-                case 4:
-                    sys.exit(0)
-                case _:
-                    raise ValueError(f"Entrada invalida")
+                        print("\nQuer salvar o resultado como .png? (1. Sim, 2. Não)")
+                        mode = int(input("Digite: "))
+                        if mode == 1:          
+                            gantt = GanttChart(self.simulator1, self.scheduler) 
+                            gantt.create_chart()                                 # cria e salva o grafico
+                        elif mode == 2:
+                            print("Adeus!")
+                            sys.exit(0)                                          # finaliza o program
 
-        except Exception as e:
-            print(f"ERRO: {e}")
+                    case 2:
+                        caminho = input("Digite o caminho do arquivo: ")
+                        configs = read_config(caminho)
+                        
+                        scheduler, quantum, tasks = configs
+                    
+                        if scheduler is None:
+                            print(f"Erro ao carregar arquivo\n")
+                        
+                        else:
+                            self.scheduler, self.quantum, self.tasks = configs
+                            self.simulator1 = Simulator(self.scheduler, self.quantum, self.tasks)
+                            print(f"Arquivo '{caminho}' carregado.\n")
+                    
+                    case 3: # sobreescreve arquivo default com as config do usuario
+                        scheduler, quantum, tasks_list = self.create_tasks()
+
+                        if scheduler is None:
+                            print("Nenhuma alteração foi salva")
+                        
+                        create_config(self.file_path, scheduler, quantum, tasks_list) 
+            
+                        self.scheduler = scheduler
+                        self.quantum = quantum
+                        self.tasks = tasks_list 
+                        
+                        self.simulator1 = Simulator(self.scheduler, self.quantum, self.tasks)
+                        self.tasks_map = {} 
+                    
+                    case 4:
+                        sys.exit(0)
+                    case _:
+                        raise ValueError(f"Entrada invalida")
+
+            except Exception as e:
+                print(f"ERRO: {e}")
 
     def create_tasks(self):                     # metodo principal para parametrizacao do sistema do usuario
         try:
@@ -100,12 +129,11 @@ class SystemInterface:
             print(f"ERRO: {e}")
             return None, 0, []
         return scheduler, quantum, created_tasks
-    
 
     def edit_task_aux(self):                    # metodo para receber as configuracoes das tarefas do usuario
         try:
             self.clear_terminal()
-            id = input("Digite o id: ")
+            t_id = input("Digite o id: ")
             
             print("Selecione uma cor: (0. Roxo, 1. Rosa, 2. Vermelho, 3. Laranja, 4. Amarelo, 5. Verde, 6. Ciano, 7. Azul)")
             valid_colors = [0, 1, 2, 3, 4, 5, 6, 7]
@@ -126,13 +154,13 @@ class SystemInterface:
                 raise ValueError
             
             # Adiciona essas info em um dicionario temporario
-            task = {
-                "t_id": id, 
-                "color": color,
-                "start": start,
-                "duration": duration,
-                "prio": prio
-            }
+            task = TaskControlBlock(
+                t_id = t_id, 
+                color = color,
+                start = start,
+                duration = duration,
+                prio = prio
+            )
             return task
         
         except ValueError:
@@ -140,8 +168,13 @@ class SystemInterface:
             return None
     
     def by_step_simulation(self):
-        while(self.simulator1.existing_tasks()):
+        is_running = True
+        while is_running:
+            if not self.simulator1.existing_tasks():
+                is_running = False
+
             print("Clique espaço para avançar a simulação\n")
+            
             click = self.user_click()
             if click == " " or click == "c":
                 self.by_step()
@@ -149,6 +182,7 @@ class SystemInterface:
     def complete_simulation(self):
         while(self.simulator1.existing_tasks()):
                 self.by_step()
+        self.by_step()
 
     def by_step(self):
         current_tick = self.simulator1.clock.current_time 
@@ -233,8 +267,4 @@ class SystemInterface:
             os.system('cls')
         else:
             os.system('clear')
-
-teste1 = SystemInterface()
-SystemInterface.main_menu(teste1)
-
 

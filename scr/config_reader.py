@@ -17,11 +17,11 @@ def create_config(filepath, scheduler, quantum, temp_tasks_list):  # criacao/ree
 
             for task in temp_tasks_list:                           # itera por cada linha no arquivo
                 t_line = [
-                    str(task["t_id"]), 
-                    str(task["color"]), 
-                    str(task["start"]), 
-                    str(task["duration"]), 
-                    str(task["prio"])  
+                    str(task.id),       
+                    str(task.color),    
+                    str(task.start),    
+                    str(task.duration), 
+                    str(task.prio)      
                 ]
                 t_line = ";".join(t_line) + "\n"        # junta cada info da tarefa, separadas apenas por ; 
                 file.write(t_line)                      # escreve a linha no arquivo

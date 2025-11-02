@@ -15,10 +15,8 @@ class Simulator():
         self._quantum_tick = 0
 
         self.tasks_list = tasks_list
-        
         self.current_task = None            # apenas uma tarefa pode estar no estado RUNNING
         self.ready_tasks = []    
-
         self.tick_data = []               # lista para armazenar as informacoes de cada tick
     
     # Metodos auxiliares 
