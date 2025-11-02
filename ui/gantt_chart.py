@@ -1,8 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from .ui_aux import colors
-# Assumindo que você tem sua classe Simulator
-# from scr.simulator import Simulator
 
 class GanttChart:
     def __init__(self, simulation, scheduler):
