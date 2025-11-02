@@ -84,6 +84,8 @@ def read_config(file): # leitura de arquivos
                 prio = prio
                 )   
                 tasks_list.append(new_task)        # a adiciona na lista de tarefas
+    
+        print("Arquivo lido com sucesso!")
  
     except FileNotFoundError:
         print(f"Arquivo {file} nao encontrado.")
