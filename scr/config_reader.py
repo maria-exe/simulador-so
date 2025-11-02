@@ -9,7 +9,6 @@ from .scheduler import schedulers
     uma as tarefas no TCB com base nessas configuracoes 
 
 """
-# Adicionar verificacao de dados na funcao que vai chamar essa
 def create_config(filepath, scheduler, quantum, temp_tasks_list):  # criacao de arquivos
     try: 
         with open(filepath, 'w', encoding='utf-8') as file:

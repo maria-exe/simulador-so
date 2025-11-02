@@ -47,7 +47,6 @@ class GanttChart:
 
         ax.set_yticks(ids)
         ax.set_yticklabels(ids)
-
         
         if not df.empty:
             max_time = (df['start'] + df['duration']).max()

@@ -126,7 +126,6 @@ class Simulator():
         self.register_waiting_tasks(current_tick)
 
         self.clock.tick()                                       # avança o tick
-    
 
     # Execucao completa
     def complete_simulation(self):
