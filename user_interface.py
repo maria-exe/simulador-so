@@ -2,13 +2,13 @@
 import os, sys
 from scr.config_reader import read_config, create_config
 from scr.simulator import Simulator
+from scr.enums import Scheduler
 
 
 
 class SystemInterface:
     def __init__(self):
         self.default_file = "config/priop.txt"
-
 
     def clear_terminal():
         os.system('clear')
@@ -20,7 +20,7 @@ class SystemInterface:
             print("Selecione uma cor: (0. Roxo, 1. Rosa, 2. Vermelho, 3. Laranja, 4. Amarelo, 5. Verde, 6. Ciano, 7. Azul)")
             valid_colors = [0, 1, 2, 3, 4, 5, 6, 7]
             color = int(input("Digite o valor correspondente: "))
-            if(color not in valid_colors):
+            if color not in valid_colors:
                 raise ValueError
             
             start = int(input("Digite o ingresso: "))
@@ -49,17 +49,22 @@ class SystemInterface:
             print(f"ERRO: Entrada {ValueError} invalida.")
             return None
 
-
     def create_tasks(self):
         # clean terminal dps
         try:
             print("Escolha o escalonador entre as opcoes: (1. FCFS, 2. SRTF e 3. PRIOP)\n")
             
-            scheduler = int(input("Digite o valor correspondente: "))
-    
+            valid_scheduler = [1, 2, 3]
+            entry = int(input("Digite o valor correspondente: "))
+            if entry not in valid_scheduler:
+                raise ValueError(f"Entrada {entry} invalida.")
+            
+            sch_string = Scheduler(entry)
+            scheduler = sch_string.name
+                
             quantum = int(input("Digite o valor do quantum: "))
             if quantum <= 0:
-                raise ValueError
+                raise ValueError(f"Entrada {quantum} invalida.")
             
             print("\n -- Configuracao de tarefas -- \n")
             created_tasks = []
@@ -77,17 +82,14 @@ class SystemInterface:
                     is_adding = False
                     break
                 else: 
-                    raise ValueError
+                    raise ValueError(f"Entrada {command} invalida.")
         
-        except ValueError:
-            print(f"ERRO: Entrada {ValueError} invalida.")
-            return None, 0
         except Exception as e:
             print(f"ERRO: {e}")
-            return None, 0
+            return None, 0, []
         
         return scheduler, quantum, created_tasks
-   
+        
     def main_menu(self):
         try: 
             print("--- SimuladorOS ---\n")
@@ -107,11 +109,12 @@ class SystemInterface:
                 case 2:
                     print("Digite o arquivo. Exemplo: 'SRTF.txt': ")
                     caminho = input()
-                    read_config(caminho)
+                    read_config(caminho) # precisa arrumar os caminhos para serem absolutos no standalone
+                    self.main_menu()
                 case 3:
                     scheduler, quantum, tasks_list = self.create_tasks()
                     create_config(self.default_file, scheduler, quantum, tasks_list) # sobreescreve arquivo default com as config do usuario
-                    pass
+                    self.main_menu()
                 case 4:
                     # chama funcao
                     #
@@ -129,9 +132,3 @@ teste1 = SystemInterface()
 SystemInterface.main_menu(teste1)
 
 
-
-    # schedulers = {
-    #     "1": run()           # INICIAR
-    #     "2": config_system(),      # CONFIGURACAO
-    #     "3": exit(0)      # SAIR
-    # }

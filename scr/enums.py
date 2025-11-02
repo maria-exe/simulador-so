@@ -8,3 +8,8 @@ class TaskState(Enum):
     TERMINATED = auto(),
     SUSPENDED = auto()
 
+class Scheduler(Enum):
+    FCFS   = 1
+    SRTF   = 2
+    PRIOP  = 3
+

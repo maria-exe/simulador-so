@@ -3,7 +3,7 @@ from .scheduler import schedulers
 """ Implementacao de metodos para leitura e escrita do arquivo de parametrizacao/configuracao das:
     
     A funcao create_config sobreescreve o arquivo de configuracao padrao do sistema com configuracoes passadas pelo
-    usuario
+    usuario na classe SystemIterface
     
     A funcao read_config le um arquivo com as configuracoes do sistema e retorna o escalonador, quantum e instancia
     uma as tarefas no TCB com base nessas configuracoes 
