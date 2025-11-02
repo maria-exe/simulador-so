@@ -6,8 +6,7 @@ class Simulator():
     def __init__(self, scheduler, quantum, tasks_list):
         self.clock = SystemClock()
         
-        # mover para a interface 
-        valid_scheduler = schedulers.get(scheduler)                          # verifica que o scheduler esta no dicionario
+        valid_scheduler = schedulers.get(scheduler)                      # verifica que o scheduler esta no dicionario
         if not valid_scheduler:
             raise ValueError(f"Escalonador '{scheduler}' inválido")
         self.scheduler = valid_scheduler()
@@ -127,8 +126,4 @@ class Simulator():
 
         self.clock.tick()                                       # avança o tick
 
-    # Execucao completa
-    def complete_simulation(self):
-        while(self.existing_tasks()):
-            self.tick()
 

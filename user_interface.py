@@ -3,69 +3,64 @@ from scr.config_reader import read_config, create_config
 from scr.simulator import Simulator
 from scr.enums import Scheduler
 from ui.ui_aux import colors, color_state
+from ui.gantt_chart import GanttChart
 
 class SystemInterface:
     def __init__(self):
-        
         self.default_file = "config/fifo.txt"                                        # configuracao padrao do sistema que pode ser sobreescrito pelo usuario
         self.scheduler, self.quantum, self.tasks = read_config(self.default_file)
         self.simulator1 = Simulator(self.scheduler, self.quantum, self.tasks)
         
         self.tasks_map = {}
 
-    def user_click(self):                       # captura click do teclado
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
+    # Metodo principal da classe, responsavel pelo interacao com o usuario no terminal
+    def main_menu(self):
         try: 
-            tty.setcbreak(fd)
-            click = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        
-        return click
-
-    def clear_terminal(self):                   # limpa terminal
-        if os.name == 'nt':
-            os.system('cls')
-        else:
-            os.system('clear')
-
-    def edit_task_aux(self):                    # metodo para receber as configuracoes das tarefas do usuario
-        try:
             self.clear_terminal()
-            id = input("Digite o id: ")
+            print("--- SimuladorOS ---\n")
+            print("Digite o numero da opcao desejada:\n" \
+            "      1. INICIAR\n" \
+            "      2. CARREGAR ARQUIVO\n" \
+            "      3. CONFIGURACAO\n" \
+            "      4. SAIR\n")
+
+            command = int(input("Digite: "))
             
-            print("Selecione uma cor: (0. Roxo, 1. Rosa, 2. Vermelho, 3. Laranja, 4. Amarelo, 5. Verde, 6. Ciano, 7. Azul)")
-            valid_colors = [0, 1, 2, 3, 4, 5, 6, 7]
-            color = int(input("Digite o valor correspondente: "))
-            if color not in valid_colors:
-                raise ValueError
-            
-            start = int(input("Digite o ingresso: "))
-            if start < 0:
-                raise ValueError
-            
-            duration = int(input("Digite a duracao: "))
-            if duration <= 0: 
-                raise ValueError
-            
-            prio  = int(input("Digite a prioridade: "))
-            if prio < 0: 
-                raise ValueError
-            
-            # Adiciona essas info em um dicionario temporario
-            task = {
-                "t_id": id, 
-                "color": color,
-                "start": start,
-                "duration": duration,
-                "prio": prio
-            }
-            return task
-        
-        except ValueError:
-            print(f"ERRO: Entrada {ValueError} invalida.")
-            return None
+            match command:
+                case 1: 
+                    print("Selecione o modo de simulacao: (1. Passo-a-passo, 2. Completa)")
+                    mode = int(input("Digite: "))
+                    if mode == 1:
+                       self.by_step_simulation()
+                    elif mode == 2:
+                        self.complete_simulation()
+
+                    print("\nQuer salvar o resultado da simulacao como imagem? (1. Sim, 2. Não)")
+                    mode = int(input("Digite: "))
+                    if mode == 1:
+                        gantt = GanttChart(self.simulator1, self.scheduler)
+                        gantt.create_chart()
+                    elif mode == 2:
+                        print("Adeus!")
+                        sys.exit(0)
+                case 2:
+                    caminho = input("Digite o arquivo. Exemplo: 'SRTF.txt': ")
+                
+                    read_config(caminho) # precisa arrumar os caminhos para serem absolutos no standalone
+                   
+
+                    self.main_menu()
+                case 3:
+                    self.scheduler, self.quantum, self.tasks_list = self.create_tasks()
+                    create_config(self.default_file, self.scheduler, self.quantum, self.tasks_list) # sobreescreve arquivo default com as config do usuario
+                    self.main_menu()
+                case 4:
+                    sys.exit(0)
+                case _:
+                    raise ValueError(f"Entrada invalida")
+
+        except Exception as e:
+            print(f"ERRO: {e}")
 
     def create_tasks(self):                     # metodo principal para parametrizacao do sistema do usuario
         try:
@@ -105,6 +100,55 @@ class SystemInterface:
             print(f"ERRO: {e}")
             return None, 0, []
         return scheduler, quantum, created_tasks
+    
+
+    def edit_task_aux(self):                    # metodo para receber as configuracoes das tarefas do usuario
+        try:
+            self.clear_terminal()
+            id = input("Digite o id: ")
+            
+            print("Selecione uma cor: (0. Roxo, 1. Rosa, 2. Vermelho, 3. Laranja, 4. Amarelo, 5. Verde, 6. Ciano, 7. Azul)")
+            valid_colors = [0, 1, 2, 3, 4, 5, 6, 7]
+            color = int(input("Digite o valor correspondente: "))
+            if color not in valid_colors:
+                raise ValueError
+            
+            start = int(input("Digite o ingresso: "))
+            if start < 0:
+                raise ValueError
+            
+            duration = int(input("Digite a duracao: "))
+            if duration <= 0: 
+                raise ValueError
+            
+            prio  = int(input("Digite a prioridade: "))
+            if prio < 0: 
+                raise ValueError
+            
+            # Adiciona essas info em um dicionario temporario
+            task = {
+                "t_id": id, 
+                "color": color,
+                "start": start,
+                "duration": duration,
+                "prio": prio
+            }
+            return task
+        
+        except ValueError:
+            print(f"ERRO: Entrada {ValueError} invalida.")
+            return None
+    
+    def by_step_simulation(self):
+        while(self.simulator1.existing_tasks()):
+            print("Clique espaço para avançar a simulação\n")
+            click = self.user_click()
+            if click == " " or click == "c":
+                self.by_step()
+
+    def complete_simulation(self):
+        while(self.simulator1.existing_tasks()):
+                self.by_step()
 
     def by_step(self):
         current_tick = self.simulator1.clock.current_time 
@@ -173,65 +217,22 @@ class SystemInterface:
         for task in self.simulator1.tasks_list:
             print(task)
 
-    def by_step_simulation(self):
-        while(self.simulator1.existing_tasks()):
-            print("Clique espaço para avançar a simulação\n")
-            click = self.user_click()
-            if click == " " or click == "c":
-                self.by_step()
-
-    def complete_simulation(self):
-        while(self.simulator1.existing_tasks()):
-                self.by_step()
-
-    # Metodo principal da classe, responsavel pelo interacao com o usuario no terminal
-    def main_menu(self):
+    def user_click(self):                       # captura click do teclado
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
         try: 
-            self.clear_terminal()
-            print("--- SimuladorOS ---\n")
-            print("Digite o numero da opcao desejada:\n" \
-            "      1. INICIAR\n" \
-            "      2. CARREGAR ARQUIVO\n" \
-            "      3. CONFIGURACAO\n" \
-            "      4. SAIR\n")
+            tty.setcbreak(fd)
+            click = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        
+        return click
 
-            command = int(input("Digite: "))
-            
-            match command:
-                case 1: 
-                    print("Selecione o modo de simulacao: (1. Passo-a-passo, 2. Completa)")
-                    mode = int(input("Digite: "))
-                    if mode == 1:
-                       self.by_step_simulation()
-                    elif mode == 2:
-                        self.complete_simulation()
-
-                    print("\nQuer salvar o resultado da simulacao como imagem? (1. Sim, 2. Não)")
-                    mode = int(input("Digite: "))
-                    if mode == 1:
-                        # chama o matplot
-                        pass
-                    elif mode == 2:
-                        print("Adeus!")
-                        self.clear_terminal()
-                        sys.exit(0)
-                case 2:
-                    print("Digite o arquivo. Exemplo: 'SRTF.txt': ")
-                    caminho = input()
-                    read_config(caminho) # precisa arrumar os caminhos para serem absolutos no standalone
-                    self.main_menu()
-                case 3:
-                    self.scheduler, self.quantum, self.tasks_list = self.create_tasks()
-                    create_config(self.default_file, self.scheduler, self.quantum, self.tasks_list) # sobreescreve arquivo default com as config do usuario
-                    self.main_menu()
-                case 4:
-                    sys.exit(0)
-                case _:
-                    raise ValueError(f"Entrada invalida")
-
-        except Exception as e:
-            print(f"ERRO: {e}")
-    
+    def clear_terminal(self):                   # limpa terminal
+        if os.name == 'nt':
+            os.system('cls')
+        else:
+            os.system('clear')
 
 teste1 = SystemInterface()
 SystemInterface.main_menu(teste1)
