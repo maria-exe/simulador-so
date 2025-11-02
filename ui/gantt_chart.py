@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from .ui_aux import colors
+#from .ui_aux import colors
 
 class GanttChart:
     def __init__(self, simulation, scheduler):
