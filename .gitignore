@@ -1,2 +1,5 @@
 __pycache__/
 afazer.txt
+build/
+dist/
+main.spec

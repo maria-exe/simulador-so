@@ -10,17 +10,20 @@ class GanttChart:
     def clean_data(self):
         df = pd.DataFrame(self.simulation.tick_data)    # transforma os dados salvos da simulacao em um DataFrame
 
-        if df.empty:                                    
+        if df.empty:     # retorna um grafico vazio se o dataframe estiver vazio                               
             return pd.DataFrame(columns=['id', 'state', 'block', 'start', 'end', 'duration'])
 
-        df = df.sort_values(by=['id', 'tick'])
+        df = df.sort_values(by=['id', 'tick']) 
+        # separa blocos por mesmo id e estado
         df['block'] = ((df['id'] != df ['id'].shift()) | (df['state'] != df['state'].shift())).cumsum()
 
+        # agrupa por id, estado e block
         gantt = df.groupby(['id', 'state', 'block']).agg (
             start = ('tick', 'min'),
             end   = ('tick', 'max')
         ).reset_index()
-
+        
+        # armazena o fim e inicio de cada bloco
         gantt['duration'] = gantt['end'] - gantt['start'] + 1
 
         return gantt
@@ -32,18 +35,20 @@ class GanttChart:
             print("Sem dados para a simulacao.")
             return
 
-        ids = sorted(df['id'].unique())
-  
+        ids = sorted(df['id'].unique()) # ordena por id
+        
+        # mapeia a cor por id da tarefa
         colors_task = {
             task.id: task.color
             for task in self.simulation.tasks_list
         }
-
+        # relaciona id por hex decimal
         df['int_color'] = df['id'].map(colors_task)
         df['hex_color'] = df['int_color'].map(colors_chart)
         
-        gray = '#d3d3d3'
+        gray = '#d3d3d3' # cinza para estado oscioso das tarefas
 
+        # aplica cor da tarefa quando ela esta executando ou cinza quando esta osciosa
         df['plot_color'] = df.apply(
             lambda row: row['hex_color'] 
             if row['state'] == 'running'
@@ -51,8 +56,10 @@ class GanttChart:
             axis=1
         )
 
+        # ajusta o tamanho do grafico
         fig, ax = plt.subplots(figsize=(15, len(ids) * 0.5 + 2))
 
+        
         ax.barh (
             y = df['id'],
             width = df['duration'],
@@ -62,6 +69,7 @@ class GanttChart:
             edgecolor = 'black'
         )
 
+        # nomes do eixo x e y, e titulo do grafico
         ax.set_xlabel("Tempo")
         ax.set_ylabel("Tarefas")
         ax.set_title(f"Escalonamento do {self.scheduler}")
@@ -79,6 +87,8 @@ class GanttChart:
 
         file = f"{self.scheduler}.png"
         print("Grafico salvo com sucesso!")
+        
+        # salva imagem
         plt.savefig(file)
         plt.close(fig)
        

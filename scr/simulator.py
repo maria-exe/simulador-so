@@ -19,37 +19,38 @@ class Simulator():
         self.ready_tasks = []    
         self.tick_data = []               # lista para armazenar as informacoes de cada tick
     
-    # Metodos auxiliares 
+    # checha se uma nova tarefa chegou no tick atual do sistema, se sim muda seu estado e coloca na lista de prontos
     def check_new_tasks(self):
         for task in self.tasks_list:
             if task.start == self.clock.current_time and task._state == TaskState.NEW:
                 task.set_ready()
                 self.ready_tasks.append(task)
    
-    def increment_waiting_time(self):
+    def increment_waiting_time(self): # aumenta o tempo de espera das tarefas na lista de prontos
         for task in self.ready_tasks:
             task._waiting_time += 1
 
-    def select_task(self):        
+    def select_task(self):            # chama o algoritmo de selecao de tarefa dos escalonamento
         return self.scheduler.select_next_task(self.ready_tasks, self.current_task)
     
-    def existing_tasks(self):
+    def existing_tasks(self):         # verifica se existe tarefa que falta executar
         for task in self.tasks_list:
             if task._state != TaskState.TERMINATED:
                 return True
         return False 
     
-    def is_running(self):
+    def is_running(self):              # verifica se tem tarefa executando
         if self.current_task == None:
             return False
         return True
     
-    def is_terminated(self):
+    def is_terminated(self):           # verifica se uma tarefa terminou sua execucao
         if self.current_task._remaining_time == 0:
             return True
         return False
     
-    def register_running_tasks(self, current_tick, running_task):
+    # metodos auxiliares para armazenar as informacoes que aconteceram em cada tick do sistema 
+    def register_running_tasks(self, current_tick, running_task): # registra tarefas que estao executando
         if running_task is not None:
             self.tick_data.append ({
                 'tick': current_tick,
@@ -57,7 +58,7 @@ class Simulator():
                 'state': 'running'     
             })
     
-    def register_waiting_tasks(self, current_tick):
+    def register_waiting_tasks(self, current_tick): # registra tarefas que estao esperando o processador
         for task in self.ready_tasks:
             self.tick_data.append ({
             'tick': current_tick,
@@ -72,6 +73,7 @@ class Simulator():
 
         current_tick = self.clock.current_time
 
+        # se nao tem uma tarefa executando no sistema, seleciona uma
         if not self.is_running():
             if self.ready_tasks:
                 chosen_task = self.select_task()
@@ -79,12 +81,12 @@ class Simulator():
                 self.current_task = chosen_task
                 self.current_task.set_running()
 
-                self._quantum_tick = 0
+                self._quantum_tick = 0                  # reseta o tick
 
-        else:
+        else: # verifica se uma tarefa precisa ser interrompida por preempcao 
             chosen_task = self.select_task()
-            if chosen_task != self.current_task:
-                self.current_task.set_ready()
+            if chosen_task != self.current_task:                # compara a tarefa selecionada com a atual 
+                self.current_task.set_ready()                   # troca de contexto
                 self.ready_tasks.append(self.current_task)
 
                 self.current_task = chosen_task                 # a outra tarefa recebe o processamento
@@ -106,17 +108,17 @@ class Simulator():
 
         running_task = None                                     # apenas para armazenar no historico
 
-        if self.is_running():
+        if self.is_running():                                   # verifica se tem uma tarefa executando
             
             running_task = self.current_task.id
 
-            self.current_task._remaining_time -= 1
+            self.current_task._remaining_time -= 1              # aumenta o tick e decrementa seu tempo restante
             self._quantum_tick += 1
 
-            if self.is_terminated():
+            if self.is_terminated():                            # verifica se terminou a execucao da tarefa
                 self.current_task.set_terminated()
                 self.current_task._life_time = (self.clock.current_time + 1) - self.current_task.start
-                self.current_task = None
+                self.current_task = None                        
                 self._quantum_tick = 0
                 
         self.register_running_tasks(current_tick, running_task)

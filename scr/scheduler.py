@@ -2,7 +2,7 @@
 # Escalonadores implementados: FIFO, PRIOP e SRTF
 from abc import ABC, abstractmethod
 
-# Classe abstrata 
+# Classe abstrata para incluir novos algoritmos de escalonamento de forma simples
 class Scheduler(ABC):
     @abstractmethod
     def select_next_task(self, ready_tasks, current_task):
@@ -16,22 +16,22 @@ class FCFS(Scheduler):
         if current_task is not None:
             return current_task
 
-        return ready_tasks[0]
+        return ready_tasks[0]       # retorna a primeira tarefa da lista de prontos
 
 class SRTF(Scheduler):
-    def select_next_task(self, ready_tasks, current_task):
+    def select_next_task(self, ready_tasks, current_task): 
         if not ready_tasks:
             return current_task
         
-        chosen = min(ready_tasks, key=lambda task: task._remaining_time) # retorna a com menor tempo restante 
+        chosen = min(ready_tasks, key=lambda task: task._remaining_time) 
 
         if current_task is None:    # nao tem tarefa executando no sistema 
             return chosen
         
-        if chosen._remaining_time < current_task._remaining_time:
+        if chosen._remaining_time < current_task._remaining_time:  # compara se a tarefa escolha tem menor tempo restante que a atual
             return chosen
 
-        return current_task
+        return current_task         # retorna a com menor tempo restante 
 
 class PRIOP(Scheduler):
     def select_next_task(self, ready_tasks, current_task):
@@ -43,7 +43,7 @@ class PRIOP(Scheduler):
         if current_task is None:    # nao tem tarefa executando no sistema 
             return chosen
 
-        if chosen.prio > current_task.prio: 
+        if chosen.prio > current_task.prio:     # compara se a tarefa escolhida tem maior priodade que a executando
             return chosen
         
         return current_task

@@ -42,7 +42,7 @@ class SystemInterface:
                         print("Selecione o modo de simulacao: (1. Passo-a-passo, 2. Completa)")
                         mode = int(input("Digite: "))
                         if mode == 1:
-                            self.by_step_simulation()
+                            self.by_step_simulation()       
                         elif mode == 2:
                             self.complete_simulation()
 
@@ -57,7 +57,7 @@ class SystemInterface:
 
                     case 2:
                         caminho = input("Digite o caminho do arquivo: ")
-                        configs = read_config(caminho)
+                        configs = read_config(caminho)  # le o arquivo do usuario e sobrescreve o arquivo padrao
                         
                         scheduler, quantum, tasks = configs
                     
@@ -65,18 +65,20 @@ class SystemInterface:
                             print(f"Erro ao carregar arquivo\n")
                         
                         else:
+                            # instancia uma nova simulacao com base nas consiguracoes lidas no arquivo do usuario
                             self.scheduler, self.quantum, self.tasks = configs
                             self.simulator1 = Simulator(self.scheduler, self.quantum, self.tasks)
                             print(f"Arquivo '{caminho}' carregado.\n")
                     
                     case 3: # sobreescreve arquivo default com as config do usuario
-                        scheduler, quantum, tasks_list = self.create_tasks()
+                        scheduler, quantum, tasks_list = self.create_tasks()  # metodo para criacao das configuracoes do sistema e tarefas
 
                         if scheduler is None:
                             print("Nenhuma alteração foi salva")
                         
                         create_config(self.file_path, scheduler, quantum, tasks_list) 
             
+                        # instancia uma nova simulacao com base nas consiguracoes passadas pelo usuario
                         self.scheduler = scheduler
                         self.quantum = quantum
                         self.tasks = tasks_list 
@@ -85,7 +87,7 @@ class SystemInterface:
                         self.tasks_map = {} 
                     
                     case 4:
-                        sys.exit(0)
+                        sys.exit(0) # encerramento do programa
                     case _:
                         raise ValueError(f"Entrada invalida")
 
@@ -94,9 +96,11 @@ class SystemInterface:
 
     def create_tasks(self):                     # metodo principal para parametrizacao do sistema do usuario
         try:
-            self.clear_terminal()
+            self.clear_terminal()   # limpa terminal
             print("Escolha o escalonador entre as opcoes: (1. FCFS, 2. SRTF e 3. PRIOP)\n")
             
+            # le e verifica as entradas de escalonamento e quantum 
+
             valid_scheduler = [1, 2, 3]
             entry = int(input("Digite o valor correspondente: "))
             if entry not in valid_scheduler:
@@ -110,10 +114,10 @@ class SystemInterface:
                 raise ValueError(f"Entrada {quantum} invalida.")
             
             print("\n ----- Configuracao de tarefas ----- \n")
-            created_tasks = []
+            created_tasks = [] # lista para armazenar as tarefas criadas pelo usuario
             
             is_adding = True
-            while(is_adding):
+            while(is_adding): # loop que chama o metodo edit_task_aux para criacao de tasks
                 print("\n--- Quer criar adicionar uma nova tarefa? (1. Sim, 2. Não) ---\n")
                 command = int(input("Digite o valor correspondente: "))
 
@@ -136,6 +140,7 @@ class SystemInterface:
             self.clear_terminal()
             t_id = input("Digite o id: ")
             
+            # le e valida as configuracoes das tarefas passadas pelo usuario
             print("Selecione uma cor: (0. Roxo, 1. Rosa, 2. Vermelho, 3. Laranja, 4. Amarelo, 5. Verde, 6. Ciano, 7. Azul)")
             valid_colors = [0, 1, 2, 3, 4, 5, 6, 7]
             color = int(input("Digite o valor correspondente: "))
@@ -168,39 +173,38 @@ class SystemInterface:
             print(f"ERRO: Entrada {ValueError} invalida.")
             return None
     
-    def by_step_simulation(self):
+    def by_step_simulation(self): # equnato existir tarefas a serem executadas, mostra a execucao de tick por tick
         is_running = True
         while is_running:
             if not self.simulator1.existing_tasks():
                 is_running = False
 
-            print("Clique espaço para avançar a simulação\n")
-            
+            print("Clique espaço para avançar a simulação\n") # a simulacao avanca com o click do usuario
+                                                    
             click = self.user_click()
             if click == " " or click == "c":
                 self.by_step()
 
     def complete_simulation(self):
-        while(self.simulator1.existing_tasks()):
+        while(self.simulator1.existing_tasks()):    # execucao completa da simulacao
                 self.by_step()
-        self.by_step()
 
     def by_step(self):
-        current_tick = self.simulator1.clock.current_time 
+        current_tick = self.simulator1.clock.current_time  # tick atual
         self.simulator1.tick()
 
-        if not self.tasks_map:
+        if not self.tasks_map:                             # adicona na lista o id tarefas que entraram nesse tick
             self.tasks_map = {task.id: task for task in self.simulator1.tasks_list}
 
-        tick_history = self.simulator1.tick_data
+        tick_history = self.simulator1.tick_data            # pega os dados do tick do sistem
         tick_data = {} 
 
-        max_time = self.simulator1.clock.current_time 
+        max_time = self.simulator1.clock.current_time       # tempo maximo
         
-        for task_id in self.tasks_map.keys():
+        for task_id in self.tasks_map.keys():               # inicia o estado de cada tarefa com oscioso
             tick_data[task_id] = ['IDLE'] * max_time 
             
-        for entry in tick_history:
+        for entry in tick_history:                          # preenche cada tarefa com seu estado
             tick_time = entry['tick']
             task_id = entry['id']
             
@@ -216,17 +220,19 @@ class SystemInterface:
         reset = "\033[0m"
         print(clean, end="")
 
-        display_ids = sorted(tick_data.keys(), reverse=True)
+        # ids das tarefas para exibir no terminal
+        display_ids = sorted(tick_data.keys(), reverse=True) # ordena as tarefas, para ser T1 embaixo e ir subindp
         
         if not display_ids: 
-            print(f"\ntick:\t{current_tick}")
+            print(f"\ntick:\t{current_tick}")                # imprime os ticks
             return
 
-        for task_id in display_ids:
+        for task_id in display_ids:                          # exibe cada tarefa
             history = tick_data[task_id]
             task = self.tasks_map[task_id]
             column = f"{task.id}  | "
 
+            # atribui as cores de acordo com o estado
             for state in history: 
                 color_code = "\033[40m"
                 
@@ -240,10 +246,10 @@ class SystemInterface:
             
             print(column)
         
-        padding = "      " 
+        padding = "      "                  # formata a saida do programa
         axis_x = padding
 
-        for tick in range(max_time):
+        for tick in range(max_time):        # tamanho do caractere/bloco por tarefa
             axis_x = axis_x + f"{tick:<4}"
         
         print(axis_x)

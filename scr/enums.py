@@ -7,6 +7,7 @@ class TaskState(Enum):
     TERMINATED = auto(),
     SUSPENDED = auto()
 
+# para relacionar a escolha do usuario no user_interface (feita por um inteiro) a string que representa o escalonador
 class Scheduler(Enum):
     FCFS   = 1
     SRTF   = 2

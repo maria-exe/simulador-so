@@ -1,3 +1,5 @@
+# Dicionarios de cores para usar na interface do programa e na cricao de grafico
+
 colors = {
     0: "\033[45m",       
     1: "\033[105m",      
