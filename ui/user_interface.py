@@ -9,13 +9,14 @@ import os, sys, tty, termios
 class SystemInterface:
     def __init__(self):
         self.default_file = "config/DEFAULT.txt"           # Configuracao padrao do sistema, que pode ser sobreescrito pelo usuario
+    
         if getattr(sys, 'frozen', False):
-            self.dir = os.path.dirname(sys.executable)
-        
+            self.dir = sys._MEIPASS
+
         else: 
             script_dir = os.path.dirname(os.path.abspath(__file__))
             self.dir = os.path.dirname(script_dir)
-    
+
         self.file_path = os.path.join(self.dir, self.default_file)
 
         self.scheduler, self.quantum, self.tasks = read_config(self.file_path)
